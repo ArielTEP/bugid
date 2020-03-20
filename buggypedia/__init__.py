@@ -34,28 +34,44 @@ class BugQuery(Resource):
         webhook = request.get_json(silent=True)
         print(webhook['resource'])
         if webhook['resource'] != 'messages': return -1
-        print("Message received from: " + webhook['data']['personEmail'])
+        # self.receipt_email = webhook['data']['personEmail']
+        
         print("Webhook data id: " + webhook['data']['id'])
         result = send_spark_get('https://api.ciscospark.com/v1/messages/{0}'.format(webhook['data']['id']))
-        msg = None
+        msg = ''
+        print(webhook['data'])
         if webhook['data']['personEmail'] != self.bot_email:
             in_message = result.get('text', '')
             in_message = in_message.replace(self.bot_name,'').strip()
+            print("Message received from: " + webhook['data']['personEmail'])
             print(" Message: " + in_message)
             if in_message.startswith('CSC') and len(in_message)==10:
                 attr_list = get_bug_note(in_message)
-                product = attr_list[0]
-                status = attr_list[1]
-                headline = attr_list[2]
-                # print(headline)
-                for i in range(3,len(attr_list)):
-                    headline += ' '
-                    headline += attr_list[i]
-                msg = '#### ' + headline + '\n' + 'Status: ' + status + ', Product: ' + product + '<br/>' + 'https://scripts.cisco.com/app/quicker_cdets/?bug=' + in_message
-                msg += '<br/>'
+                if attr_list[0] != 'No':
+                    product = attr_list[0]
+                    status = attr_list[1]
+                    headline = attr_list[2]
+                    # print(headline)
+                    for i in range(3,len(attr_list)):
+                        headline += ' '
+                        headline += attr_list[i]
+                    msg = '#### ' + headline + '\n' + 'Status: ' + status + ', Product: ' + product + '<br/>' + 'https://scripts.cisco.com/app/quicker_cdets/?bug=' + in_message
+                    msg += '<br/>'
+                else:
+                    msg += 'No records were found that matched the search criteria.'
                 # msg += 'CCO: ' + 'https://bst.cloudapps.cisco.com/bugsearch/bug/' + in_message
+            elif ('gm' in in_message.lower() or 'good morning' in in_message.lower()):
+                msg += 'Good morning ' + webhook['data']['personEmail'].replace('@cisco.com',' :D!')
+            elif ('smart' in in_message.lower()):
+                msg += 'I feel flattered ' + webhook['data']['personEmail'].replace('@cisco.com','.')
+            elif ('love' in in_message.lower() or '💖' in in_message.lower()):
+                msg += 'Thanks ' + webhook['data']['personEmail'].replace('@cisco.com','!')
+            elif ('💔' in in_message.lower()):
+                msg+= "Come on " + webhook['data']['personEmail'].replace('@cisco.com',', ') + 'your rock!'
+            elif ('fuck' in in_message.lower()  or 'fucking' in in_message.lower() or 'fucker' in in_message.lower()):
+                msg += 'Ouch! Bad words are not allowed in this team space.'
             else:
-                msg = "Double-check bug id and try again"
+                msg = "Make sure you wrote the right bug id format."
             result = send_spark_post("https://api.ciscospark.com/v1/messages", {"roomId": webhook['data']['roomId'], "markdown": msg})
         return "ok"
 

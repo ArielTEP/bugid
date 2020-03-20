@@ -20,14 +20,13 @@ def send_spark_post(url, data):
     response = requests.post(url, json=data, headers=headers)
     return response.json()
 
-
 def get_bug_note(bug_id):
     '''
     Example URL:
     http://cdetsweb-prd.cisco.com/findsimple/findcr_simple?field=Submitted-on,Identifier,Status,Headline&query=[Identifier]=%27CSCug59348%27
     url = "http://cdetsweb-prd.cisco.com/cdets/cli/ViewNote.html?identifier={bug_id}&title={note_name}".format(bug_id=bug_id, note_name=note_name)
    '''
-    url = ' http://cdetsweb-prd.cisco.com/findsimple/findcr_simple?field=Product,Status-desc,Headline&query=[Identifier]=%27{bug_id}%27'.format(bug_id=bug_id)
+    url = 'http://72.163.43.97/findsimple/findcr_simple?field=Product,Status-desc,Headline&query=[Identifier]=%27{bug_id}%27'.format(bug_id=bug_id)
     response = requests.get(url).text
     # print(response)
     return response.split()
